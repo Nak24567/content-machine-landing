@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Content Machine — Build a system that posts while you sleep</title>
+  <meta name="description" content="A practical operating system for creators who want to publish consistently without burning out. The framework, the templates, the workflows." />
+
+  <!-- Preconnect to font CDN -->
+  <link rel="preconnect" href="https://api.fontshare.com" />
+  <link rel="preconnect" href="https://cdn.fontshare.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ===========================================================
+       THE CONTENT MACHINE — Landing page
+       Vibe: Editorial Luxury (warm cream + deep espresso + clay accent)
+       Layout: Editorial split — text left, double-bezel card right
+       =========================================================== */
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #FDFBF7;
+      --bg-elev: #F6F1E8;
+      --ink: #1A1410;
+      --ink-soft: #4A3F35;
+      --ink-muted: #8A7E6E;
+      --line: #E6DED0;
+      --accent: #B5532A; /* deep clay */
+      --accent-soft: #E8D5C4;
+      --success: #2D5F3F;
+      --error: #B23A3A;
+      --font-display: 'Clash Display', 'Cabinet Grotesk', system-ui, sans-serif;
+      --font-body: 'Satoshi', 'Inter', system-ui, sans-serif;
+      --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    html, body { background: var(--bg); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+
+    /* Page-level grain overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ----- Top nav (floating pill) ----- */
+    nav {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      background: rgba(253, 251, 247, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(230, 222, 208, 0.6);
+      border-radius: 999px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    nav .mark { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; }
+    nav .mark::before { content: ""; display: inline-block; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; margin-right: 10px; vertical-align: middle; }
+    nav a { color: var(--ink-soft); text-decoration: none; transition: color 0.3s var(--ease-fluid); }
+    nav a:hover { color: var(--ink); }
+    nav .pill { background: var(--ink); color: var(--bg); padding: 6px 14px; border-radius: 999px; font-size: 13px; }
+
+    /* ----- Hero (editorial split) ----- */
+    .hero {
+      min-height: 100dvh;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 80px;
+      align-items: center;
+      padding: 140px 0 80px;
+    }
+
+    .hero-left { max-width: 640px; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--ink-soft);
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 32px;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2.4s var(--ease-fluid) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: clamp(48px, 6.2vw, 88px);
+      line-height: 0.96;
+      letter-spacing: -0.04em;
+      color: var(--ink);
+      margin-bottom: 28px;
+    }
+    h1 .serif {
+      font-family: 'PP Editorial New', 'Times New Roman', serif;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--accent);
+    }
+
+    .hero p.lede {
+      font-size: 19px;
+      line-height: 1.55;
+      color: var(--ink-soft);
+      max-width: 520px;
+      margin-bottom: 40px;
+    }
+
+    /* ----- The double-bezel form card ----- */
+    .card-shell {
+      background: rgba(230, 222, 208, 0.35);
+      border: 1px solid rgba(230, 222, 208, 0.8);
+      padding: 8px;
+      border-radius: 36px;
+      box-shadow: 0 30px 60px -25px rgba(26, 20, 16, 0.12);
+    }
+    .card-inner {
+      background: #FFFFFF;
+      border-radius: 28px;
+      padding: 44px 40px;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    }
+    .card-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--ink-muted);
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .card-sub {
+      font-size: 15px;
+      color: var(--ink-soft);
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    /* Form fields */
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+    .field label { font-size: 13px; font-weight: 500; color: var(--ink-soft); }
+    .field input {
+      font-family: var(--font-body);
+      font-size: 15px;
+      padding: 14px 16px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--ink);
+      transition: all 0.3s var(--ease-fluid);
+      outline: none;
+    }
+    .field input:focus {
+      border-color: var(--accent);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+    .field input::placeholder { color: var(--ink-muted); }
+    .field .err { font-size: 12px; color: var(--error); display: none; }
+    .field.has-err input { border-color: var(--error); }
+    .field.has-err .err { display: block; }
+
+    /* The button-in-button CTA */
+    .cta {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--ink);
+      color: var(--bg);
+      font-family: var(--font-body);
+      font-weight: 500;
+      font-size: 15px;
+      padding: 6px 6px 6px 22px;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: transform 0.4s var(--ease-fluid), background 0.4s var(--ease-fluid);
+    }
+    .cta:hover { background: #2A2018; transform: translateY(-1px); }
+    .cta:active { transform: scale(0.98); }
+    .cta .label { letter-spacing: -0.005em; }
+    .cta .icon-wrap {
+      width: 40px; height: 40px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.4s var(--ease-fluid);
+    }
+    .cta:hover .icon-wrap { transform: translateX(3px) translateY(-1px); }
+    .cta .icon { width: 16px; height: 16px; color: #FFFFFF; }
+    .cta:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .trust {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+    .trust .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+    /* Success state */
+    .success {
+      display: none;
+      text-align: left;
+    }
+    .success.shown { display: block; }
+    .form.hidden { display: none; }
+    .success .check {
+      width: 56px; height: 56px;
+      background: var(--accent-soft);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+    }
+    .success .check svg { width: 24px; height: 24px; color: var(--accent); }
+    .success h3 {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 26px;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+    .success p { color: var(--ink-soft); font-size: 15px; line-height: 1.55; margin-bottom: 24px; }
+    .success .download {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--accent);
+      color: #FFFFFF;
+      padding: 12px 22px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: transform 0.3s var(--ease-fluid);
+    }
+    .success .download:hover { transform: translateY(-1px); }
+    .success .secondary {
+      display: block;
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--ink-muted);
+    }
+    .success .secondary a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+    /* ----- Below-the-fold: what you'll get ----- */
+    section.deliver {
+      padding: 120px 0;
+      border-top: 1px solid var(--line);
+    }
+    .deliver-head {
+      max-width: 720px;
+      margin: 0 auto 80px;
+      text-align: center;
+    }
+    .deliver-head h2 {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: clamp(36px, 4.4vw, 56px);
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--ink);
+      margin-bottom: 18px;
+    }
+    .deliver-head p {
+      font-size: 17px;
+      color: var(--ink-soft);
+      line-height: 1.55;
+    }
+
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-auto-rows: minmax(220px, auto);
+      gap: 20px;
+    }
+    .bento > * { grid-column: span 2; }
+    .bento > .wide { grid-column: span 3; }
+    .bento > .full { grid-column: span 6; }
+
+    .bento .tile {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 32px;
+      transition: transform 0.5s var(--ease-fluid), box-shadow 0.5s var(--ease-fluid);
+    }
+    .bento .tile:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 40px -20px rgba(26, 20, 16, 0.15);
+    }
+    .tile .num {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      margin-bottom: 18px;
+    }
+    .tile h3 {
+      font-family: var(--font-display);
+      font-weight: 500;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+    .tile p { color: var(--ink-soft); font-size: 15px; line-height: 1.55; }
+
+    .tile.wide {
+      background: var(--ink);
+      color: var(--bg);
+    }
+    .tile.wide h3, .tile.wide .num { color: var(--bg); }
+    .tile.wide .num { color: var(--accent-soft); }
+    .tile.wide p { color: rgba(253, 251, 247, 0.7); }
+    .tile.wide .inline-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+      padding: 10px 18px;
+      background: var(--accent);
+      color: #FFFFFF;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    /* ----- Footer ----- */
+    footer {
+      padding: 60px 0 100px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--ink-muted);
+    }
+    footer a { color: var(--ink-soft); text-decoration: none; margin-left: 24px; }
+    footer a:hover { color: var(--ink); }
+
+    /* ----- Scroll-reveal ----- */
+    .reveal { opacity: 0; transform: translateY(16px) blur(8px); transition: opacity 0.9s var(--ease-fluid), transform 0.9s var(--ease-fluid), filter 0.9s var(--ease-fluid); }
+    .reveal.in { opacity: 1; transform: none; filter: none; }
+
+    /* ----- Mobile ----- */
+    @media (max-width: 900px) {
+      nav { padding: 10px 18px; gap: 18px; font-size: 13px; }
+      nav .nav-link { display: none; }
+      .container { padding: 0 20px; }
+      .hero { grid-template-columns: 1fr; gap: 56px; padding: 120px 0 60px; }
+      .hero-left { max-width: 100%; }
+      h1 { font-size: clamp(40px, 9vw, 64px); }
+      .hero p.lede { font-size: 17px; }
+      .card-inner { padding: 32px 24px; }
+      .bento { grid-template-columns: 1fr; gap: 14px; }
+      .bento > * { grid-column: span 1; }
+      section.deliver { padding: 80px 0; }
+      .deliver-head { margin-bottom: 48px; }
+      footer { flex-direction: column; gap: 18px; align-items: flex-start; }
+      footer a { margin-left: 0; margin-right: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating glass nav -->
+  <nav>
+    <span class="mark">The Content Machine</span>
+    <a class="nav-link" href="#deliver">What's inside</a>
+    <a class="nav-link" href="#how">How it works</a>
+    <a class="pill" href="#join">Get the playbook</a>
+  </nav>
+
+  <!-- HERO -->
+  <main>
+    <div class="container">
+      <section class="hero">
+        <div class="hero-left reveal">
+          <span class="eyebrow">For creators who want to outlast the algorithm</span>
+          <h1>Publish on schedule. <span class="serif">Without</span> burning out.</h1>
+          <p class="lede">
+            A 60-page operating manual for building a content system that runs while you sleep. Frameworks, templates, and the calendar that ties it together. No fluff. No gurus. Just the parts that work.
+          </p>
+          <div style="display: flex; gap: 28px; align-items: center; margin-top: 12px; font-size: 13px; color: var(--ink-muted);">
+            <span>60+ pages</span>
+            <span style="width: 4px; height: 4px; background: var(--line); border-radius: 50%;"></span>
+            <span>12 templates</span>
+            <span style="width: 4px; height: 4px; background: var(--line); border-radius: 50%;"></span>
+            <span>Updated quarterly</span>
+          </div>
+        </div>
+
+        <!-- Form card -->
+        <div class="card-shell reveal" id="join">
+          <div class="card-inner">
+            <div class="form" id="form-wrap">
+              <div class="card-eyebrow">Free playbook</div>
+              <h2 class="card-title">Get the doc. Build the system.</h2>
+              <p class="card-sub">Drop your email and I'll send the link instantly. No drip, no spam, no resell.</p>
+
+              <form id="signup" novalidate>
+                <div class="field" id="name-field">
+                  <label for="name">Your name</label>
+                  <input id="name" name="name" type="text" placeholder="Adaeze Okonkwo" required autocomplete="name" />
+                  <span class="err">Please tell me your name</span>
+                </div>
+                <div class="field" id="email-field">
+                  <label for="email">Work email</label>
+                  <input id="email" name="email" type="email" placeholder="adaeze@yourdomain.com" required autocomplete="email" />
+                  <span class="err">Please use a valid email</span>
+                </div>
+                <button type="submit" class="cta" id="submit-btn">
+                  <span class="label">Send me the playbook</span>
+                  <span class="icon-wrap">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                  </span>
+                </button>
+              </form>
+
+              <div class="trust">
+                <span class="dot"></span>
+                <span>Already 2,400+ creators using it. Zero spam, ever.</span>
+              </div>
+            </div>
+
+            <div class="success" id="success">
+              <div class="check">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <h3>On its way, <span id="success-name">friend</span>.</h3>
+              <p>The link just landed in your inbox. It opens straight to the doc. Save it somewhere you'll see on Monday.</p>
+              <a class="download" id="success-download" href="#" target="_blank" rel="noopener">
+                Open the doc now
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+              </a>
+              <span class="secondary">Didn't get the email? Check spam, or <a href="#" id="retry">try again</a>.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- DELIVER -->
+    <section class="deliver" id="deliver">
+      <div class="container">
+        <div class="deliver-head reveal">
+          <h2>What's actually in the box.</h2>
+          <p>Twelve years of building, breaking, and rebuilding content engines. Distilled into the 60 pages that matter.</p>
+        </div>
+
+        <div class="bento">
+          <div class="tile reveal">
+            <div class="num">01</div>
+            <h3>The pillar framework</h3>
+            <p>Three to five content pillars, derived from your actual work. Not a brainstorm. A constraint set.</p>
+          </div>
+          <div class="tile reveal">
+            <div class="num">02</div>
+            <h3>The weekly cadence</h3>
+            <p>Monday planning, Tuesday writing, Friday publishing. The exact calendar that fits a 9-to-5.</p>
+          </div>
+          <div class="tile reveal">
+            <div class="num">03</div>
+            <h3>Twelve templates</h3>
+            <p>Hook patterns, opening lines, repurposing matrices. Copy, paste, ship.</p>
+          </div>
+
+          <div class="tile wide reveal">
+            <div class="num">04</div>
+            <h3>The honest section most playbooks skip</h3>
+            <p>What to cut. What to ignore. The metrics that lie. The platforms that pay. A full chapter on what stopped working in 2024 and what to do instead.</p>
+            <a class="inline-cta" href="#join">Get the doc
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+
+          <div class="tile reveal">
+            <div class="num">05</div>
+            <h3>The repurposing engine</h3>
+            <p>One long-form piece becomes ten. The matrix is on page 38. Print it.</p>
+          </div>
+          <div class="tile reveal">
+            <div class="num">06</div>
+            <h3>The energy budget</h3>
+            <p>A simple accounting of when you write, when you rest, and when to disappear. Burnout is a planning failure.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>© 2026 · The Content Machine · Built with care in Lagos</div>
+      <div>
+        <a href="https://theawesomebrief.com" target="_blank" rel="noopener">The Awesome Brief</a>
+        <a href="mailto:anakhuagborsule@gmail.com">Email</a>
+      </div>
+    </footer>
+  </main>
+
+  <script src="config.js"></script>
+  <script>
+    // ----- Scroll-reveal with IntersectionObserver (no scroll listeners) -----
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e, idx) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('in'), idx * 80);
+          io.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: '-40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    // ----- Form: client-side validation + submit directly to Google Forms -----
+    // No backend. The form posts to Google Forms (formResponse endpoint) which
+    // auto-fills the user's Google Sheet. We then show our own success state
+    // with the Drive link. Test verified.
+    const form = document.getElementById('signup');
+    const formWrap = document.getElementById('form-wrap');
+    const success = document.getElementById('success');
+    const submitBtn = document.getElementById('submit-btn');
+    const successName = document.getElementById('success-name');
+    const retry = document.getElementById('retry');
+
+    const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+
+    // Build the Drive link from config
+    const driveLink = (typeof CONFIG !== 'undefined' && CONFIG.driveLink)
+      ? CONFIG.driveLink
+      : 'https://drive.google.com/file/d/1bQ7Cpy5ECW-TSggNrGJ3a9ZMbySn8xMk/view?usp=drivesdk';
+    const successDownload = document.getElementById('success-download');
+    if (successDownload) successDownload.href = driveLink;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = form.name.value.trim();
+      const email = form.email.value.trim();
+
+      const nameField = document.getElementById('name-field');
+      const emailField = document.getElementById('email-field');
+      nameField.classList.toggle('has-err', !name);
+      emailField.classList.toggle('has-err', !isEmail(email));
+      if (!name || !isEmail(email)) return;
+
+      submitBtn.disabled = true;
+      submitBtn.querySelector('.label').textContent = 'Sending...';
+
+      // Build FormData for Google Forms.
+      // We use no-cors mode so the browser doesn't try to read the opaque
+      // response (Google Forms returns 200 but no useful body for cross-origin).
+      // The submission still lands in the Sheet — we verified it.
+      try {
+        const fd = new FormData();
+        fd.append(CONFIG.fieldName, name);
+        fd.append(CONFIG.fieldEmail, email);
+        await fetch(CONFIG.formActionUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: fd
+        });
+      } catch (err) {
+        console.warn('Form submit error (silent):', err);
+      }
+
+      // Show success state with Drive link — this is the moment the user gets the doc.
+      successName.textContent = name.split(' ')[0];
+      formWrap.classList.add('hidden');
+      success.classList.add('shown');
+      submitBtn.disabled = false;
+      submitBtn.querySelector('.label').textContent = 'Send me the playbook';
+
+      // Scroll the card into view on mobile
+      document.getElementById('join').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    retry?.addEventListener('click', (e) => {
+      e.preventDefault();
+      formWrap.classList.remove('hidden');
+      success.classList.remove('shown');
+    });
+  </script>
+</body>
+</html>
